@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="uz" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mutolaa — Zamonaviy Kitoblar Katalogi</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & Playfair Display -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        cream: {
+                            50: '#FDFBF7',
+                            100: '#F8F4EC',
+                            200: '#EFE8D8',
+                            300: '#E2D5BC',
+                        },
+                        emeraldDeep: {
+                            700: '#0F5132',
+                            800: '#0B3B24',
+                            900: '#072818',
+                        },
+                        navyDeep: {
+                            800: '#1E293B',
+                            900: '#0F172A',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-cream-50 text-navyDeep-900 font-sans antialiased selection:bg-emeraldDeep-700 selection:text-white flex flex-col min-h-screen">
+
+    <!-- Bildirishnoma (Toast Message Box) -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Navigatsiya Paneli -->
+    <header class="sticky top-0 z-40 bg-cream-50/90 backdrop-blur-md border-b border-cream-200 transition-all">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo -->
+                <a href="#bosh-sahifa" class="flex items-center gap-3 group">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emeraldDeep-700 to-navyDeep-900 text-cream-50 flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+                        <i data-lucide="book-open" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <span class="font-serif font-bold text-2xl tracking-tight text-navyDeep-900">Mutolaa</span>
+                        <span class="block text-[11px] font-medium text-emeraldDeep-700 uppercase tracking-widest -mt-1">Kitoblar Olami</span>
+                    </div>
+                </a>
+
+                <!-- Desktop Menyu -->
+                <nav class="hidden md:flex items-center gap-8">
+                    <a href="#bosh-sahifa" class="text-sm font-medium text-navyDeep-800 hover:text-emeraldDeep-700 transition-colors">Bosh sahifa</a>
+                    <a href="#katalog" class="text-sm font-medium text-navyDeep-800 hover:text-emeraldDeep-700 transition-colors">Kitoblar katalogi</a>
+                    <a href="#janrlar" class="text-sm font-medium text-navyDeep-800 hover:text-emeraldDeep-700 transition-colors">Janrlar</a>
+                    <a href="#tavsiya-qilish" class="text-sm font-medium text-navyDeep-800 hover:text-emeraldDeep-700 transition-colors">Kitob qo'shish</a>
+                </nav>
+
+                <!-- Harakat tugmalari -->
+                <div class="flex items-center gap-3">
+                    <button onclick="openFavoritesModal()" class="relative inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cream-100 hover:bg-cream-200 text-navyDeep-900 font-medium text-sm transition-all border border-cream-300 shadow-sm">
+                        <i data-lucide="heart" class="w-4 h-4 text-rose-600 fill-rose-600"></i>
+                        <span class="hidden sm:inline">Sevimlilar</span>
+                        <span id="fav-badge" class="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-emeraldDeep-700 rounded-full">0</span>
+                    </button>
+
+                    <!-- Mobil menyu tugmasi -->
+                    <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="md:hidden p-2.5 rounded-xl bg-cream-100 text-navyDeep-900 hover:bg-cream-200 border border-cream-300">
+                        <i data-lucide="menu" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobil Menyu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-cream-100 border-b border-cream-200 px-4 pt-2 pb-4 space-y-2">
+            <a href="#bosh-sahifa" onclick="toggleMobileMenu()" class="block px-3 py-2.5 rounded-xl text-base font-medium text-navyDeep-900 hover:bg-cream-200">Bosh sahifa</a>
+            <a href="#katalog" onclick="toggleMobileMenu()" class="block px-3 py-2.5 rounded-xl text-base font-medium text-navyDeep-900 hover:bg-cream-200">Kitoblar katalogi</a>
+            <a href="#janrlar" onclick="toggleMobileMenu()" class="block px-3 py-2.5 rounded-xl text-base font-medium text-navyDeep-900 hover:bg-cream-200">Janrlar</a>
+            <a href="#tavsiya-qilish" onclick="toggleMobileMenu()" class="block px-3 py-2.5 rounded-xl text-base font-medium text-navyDeep-900 hover:bg-cream-200">Kitob qo'shish</a>
+        </div>
+    </header>
+
+    <!-- Hero (Bosh sahifa) bo'limi -->
+    <section id="bosh-sahifa" class="relative overflow-hidden py-14 sm:py-20 bg-gradient-to-b from-cream-100 to-cream-50 border-b border-cream-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+                <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emeraldDeep-700/10 text-emeraldDeep-800 text-xs font-semibold tracking-wide">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                        <span>O'zbek va Jahon Adabiyoti Xazinasi</span>
+                    </div>
+                    <h1 class="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-navyDeep-900 leading-tight">
+                        Har bir sahifada <span class="text-emeraldDeep-700 italic">yangi olam</span> kashf eting
+                    </h1>
+                    <p class="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+                        Eng sara badiiy, tarixiy, ilmiy-ommabop va psixologik asarlar to'plami. O'zingizga yoqqan kitoblarni toping, iqtiboslardan ilhomlaning va shaxsiy mutolaa ro'yxatingizni yarating.
+                    </p>
+                    <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
+                        <a href="#katalog" class="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-emeraldDeep-700 hover:bg-emeraldDeep-800 text-white font-medium text-sm shadow-lg shadow-emeraldDeep-700/20 transition-all flex items-center justify-center gap-2">
+                            <span>Katalogni ko'rish</span>
+                            <i data-lucide="arrow-down-right" class="w-4 h-4"></i>
+                        </a>
+                        <a href="#tavsiya-qilish" class="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-white hover:bg-cream-100 text-navyDeep-900 font-medium text-sm border border-cream-300 shadow-sm transition-all flex items-center justify-center gap-2">
+                            <i data-lucide="plus-circle" class="w-4 h-4 text-emeraldDeep-700"></i>
+                            <span>Yangi kitob tavsiya qilish</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Dekorativ Kitob Kartochkasi (Kun iqtibosi) -->
+                <div class="lg:col-span-5">
+                    <div class="bg-navyDeep-900 text-cream-50 p-7 sm:p-8 rounded-3xl shadow-2xl relative overflow-hidden border border-slate-800">
+                        <div class="absolute -right-10 -top-10 w-40 h-40 bg-emeraldDeep-700/30 rounded-full blur-2xl"></div>
+                        <div class="relative z-10 space-y-5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-semibold uppercase tracking-widest text-emerald-400">Kun Iqtibosi</span>
+                                <i data-lucide="quote" class="w-6 h-6 text-emerald-400/60"></i>
+                            </div>
+                            <blockquote class="font-serif text-xl sm:text-2xl italic leading-relaxed text-cream-100">
+                                "Kitob — barcha bunyodkorlik, yaratuvchilik va aql-idrokning, ilmu donishning asosidir. Hayotni o'rgatuvchi murabbiydir."
+                            </blockquote>
+                            <div class="pt-3 border-t border-slate-800 flex items-center justify-between">
+                                <div>
+                                    <p class="font-medium text-sm text-white">Amir Temur</p>
+                                    <p class="text-xs text-slate-400">Buyuk sarkarda va davlat arbobi</p>
+                                </div>
+                                <div class="flex gap-1 text-amber-400">
+                                    <i data-lucide="star" class="w-4 h-4 fill-amber-400"></i>
+                                    <i data-lucide="star" class="w-4 h-4 fill-amber-400"></i>
+                                    <i data-lucide="star" class="w-4 h-4 fill-amber-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Asosiy Qism: Qidiruv, Janrlar va Katalog -->
+    <main id="katalog" class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
+        
+        <!-- Qidiruv va Saralash Paneli -->
+        <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-cream-200 mb-8">
+            <div class="flex flex-col md:flex-row gap-4 justify-between items-center">
+                <!-- Qidiruv inputi -->
+                <div class="relative w-full md:w-2/3">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i data-lucide="search" class="w-5 h-5 text-slate-400"></i>
+                    </div>
+                    <input 
+                        type="text" 
+                        id="search-input" 
+                        oninput="filterBooks()"
+                        placeholder="Kitob nomi yoki muallif ismi bo'yicha qidiring (masalan: O'tkan kunlar, Paulo Koelo)..." 
+                        class="w-full pl-11 pr-10 py-3.5 bg-cream-50 border border-cream-300 rounded-xl text-sm text-navyDeep-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emeraldDeep-700 focus:border-transparent transition-all"
+                    >
+                    <button id="clear-search" onclick="clearSearch()" class="hidden absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-navyDeep-900">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
+                <!-- Saralash -->
+                <div class="w-full md:w-1/3 flex items-center gap-2">
+                    <label for="sort-select" class="text-xs font-medium text-slate-500 whitespace-nowrap">Saralash:</label>
+                    <select id="sort-select" onchange="filterBooks()" class="w-full py-3.5 px-4 bg-cream-50 border border-cream-300 rounded-xl text-sm text-navyDeep-900 focus:outline-none focus:ring-2 focus:ring-emeraldDeep-700">
+                        <option value="default">Tavsiya etilgan</option>
+                        <option value="rating">Yuqori reyting bo'yicha</option>
+                        <option value="year-desc">Yangi nashrlar (Yil bo'yicha)</option>
+                        <option value="title">Alifbo tartibida (A-Z)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Janrlar bo'yicha filtr tugmalari -->
+            <div id="janrlar" class="mt-5 pt-5 border-t border-cream-200">
+                <div class="flex items-center gap-2 mb-3">
+                    <i data-lucide="layers" class="w-4 h-4 text-emeraldDeep-700"></i>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Janrlar bo'yicha tanlash:</span>
+                </div>
+                <div id="genre-buttons" class="flex flex-wrap gap-2">
+                    <!-- Janr tugmalari JS orqali yaratiladi -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Natijalar soni -->
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="font-serif text-2xl sm:text-3xl font-bold text-navyDeep-900">Kitoblar Katalogi</h2>
+            <span id="books-count" class="text-sm font-medium text-slate-600 bg-cream-200/70 px-3.5 py-1.5 rounded-full">Jami: 0 ta kitob</span>
+        </div>
+
+        <!-- Kitoblar Grid (Kartochkalar) -->
+        <div id="books-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- Kitob kartochkalari JS orqali yuklanadi -->
+        </div>
+
+        <!-- Hech narsa topilmaganda ko'rinadigan xabar -->
+        <div id="empty-state" class="hidden text-center py-16 bg-white rounded-3xl border border-cream-200 my-6">
+            <div class="w-16 h-16 bg-cream-100 text-slate-400 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="book-x" class="w-8 h-8"></i>
+            </div>
+            <h3 class="font-serif text-xl font-bold text-navyDeep-900 mb-2">Afsuski, kitob topilmadi</h3>
+            <p class="text-sm text-slate-500 max-w-md mx-auto mb-6">Qidiruv so'zini o'zgartirib ko'ring yoki barcha janrlarni tanlang.</p>
+            <button onclick="resetFilters()" class="px-5 py-2.5 rounded-xl bg-emeraldDeep-700 text-white text-sm font-medium hover:bg-emeraldDeep-800 transition-colors">
+                Barcha kitoblarni ko'rsatish
+            </button>
+        </div>
+
+        <!-- Yangi Kitob Tavsiya Qilish (Qo'shish) Formasi -->
+        <section id="tavsiya-qilish" class="mt-20 bg-white rounded-3xl p-6 sm:p-10 shadow-sm border border-cream-200">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <div class="lg:col-span-5 space-y-4">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emeraldDeep-700/10 text-emeraldDeep-800 text-xs font-semibold">
+                        <i data-lucide="pen-tool" class="w-3.5 h-3.5"></i>
+                        <span>Hamjamiyat hissasi</span>
+                    </div>
+                    <h2 class="font-serif text-3xl font-bold text-navyDeep-900">Sevimli kitobingizni katalogga qo'shing</h2>
+                    <p class="text-sm text-slate-600 leading-relaxed">
+                        Boshqa kitobxonlarga ham foydali bo'lishi uchun o'zingiz o'qigan va taassurot qoldirgan asarni tavsiya qiling. Qo'shilgan kitob darhol umumiy katalogda paydo bo'ladi!
+                    </p>
+                    <div class="p-4 rounded-2xl bg-cream-100 border border-cream-200 space-y-2">
+                        <p class="text-xs font-semibold text-navyDeep-900 flex items-center gap-1.5">
+                            <i data-lucide="info" class="w-4 h-4 text-emeraldDeep-700"></i>
+                            Maslahat:
+                        </p>
+                        <p class="text-xs text-slate-600">Kitobdan esda qolarli iqtibos kiritsangiz, o'quvchilarda asarga nisbatan qiziqish yanada ortadi.</p>
+                    </div>
+                </div>
+
+                <form id="add-book-form" onsubmit="handleAddBook(event)" class="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-navyDeep-900 mb-1.5">Kitob nomi *</label>
+                        <input type="text" id="new-title" required placeholder="Masalan: Mehrobdan chayon" class="w-full px-4 py-3 rounded-xl bg-cream-50 border border-cream-300 text-sm focus:outline-none focus:ring-2 focus:ring-emeraldDeep-700">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-navyDeep-900 mb-1.5">Muallif ismi *</label>
+                        <input type="text" id="new-author" required placeholder="Masalan: Abdulla Qodiriy" class="w-full px-4 py-3 rounded-xl bg-cream-50 border border-cream-300 text-sm focus:outline-none focus:ring-2 focus:ring-emeraldDeep-700">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-navyDeep-900 mb-1.5">Janr *</label>
+                        <select id="new-genre" required class="w-full px-4 py-3 rounded-xl bg-cream-50 border border-cream-300 text-sm focus:outline-none focus:ring-2 focus:ring-emeraldDeep-700">
+                            <option value="O'zbek adabiyoti">O'zbek adabiyoti</option>
+                            <option value="Badiiy adabiyot">Badiiy adabiyot</option>
+                            <option value="Tarixiy">Tarixiy</option>
+                            <option value="Psixologiya">Psixologiya</option>
+                            <option value="Ilmiy-ommabop">Ilmiy-ommabop</option>
+                            <option value="Fantastika">Fantastika</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-navyDeep-900 mb-1.5">Nashr yili *</label>
+                            <input type="number" id="new-year" required min="1000" max="2026" placeholder="2022" class="w-full px-4 py-3 rounded-xl bg-cream-50 border border-cream-300 text-sm focus:outline-none focus:ring-2 focus:ring-emeraldDeep-700">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-navyDeep-900 mb-1.5">Sahifalar *</label>
+                            <input type="number" id="new-pages" required min="10" max="5000" placeholder="320" class="w-full px-4 py-3 rounded-xl bg-cream-50 border border-cream-300 text-sm focus:outline-none focus:ring-2 focus:ring-emeraldDeep-700">
+                        </div>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-semibold text-navyDeep-900 mb-1.5">Qisqacha mazmuni (Annotatsiya) *</label>
+                        <textarea id="new-desc" required rows="3" placeholder="Kitob nima haqida ekanligini qisqacha yozing..." class="w-full px-4 py-3 rounded-xl bg-cream-50 border border-cream-300 text-sm focus:outline-none focus:ring-2 focus:ring-emeraldDeep-700"></textarea>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-semibold text-navyDeep-900 mb-1.5">Kitobdan iqtibos (Ixtiyoriy)</label>
+                        <input type="text" id="new-quote" placeholder="Asardan eng ta'sirli jumla..." class="w-full px-4 py-3 rounded-xl bg-cream-50 border border-cream-300 text-sm focus:outline-none focus:ring-2 focus:ring-emeraldDeep-700">
+                    </div>
+                    <div class="sm:col-span-2 pt-2">
+                        <button type="submit" class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-navyDeep-900 hover:bg-emeraldDeep-800 text-white font-medium text-sm shadow-md transition-all flex items-center justify-center gap-2">
+                            <i data-lucide="book-plus" class="w-4 h-4"></i>
+                            <span>Katalogga qo'shish</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-navyDeep-900 text-cream-200 border-t border-slate-800 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-emeraldDeep-700 text-white flex items-center justify-center">
+                        <i data-lucide="book-open" class="w-5 h-5"></i>
+                    </div>
+                    <span class="font-serif font-bold text-xl text-white">Mutolaa</span>
+                </div>
+                <p class="text-xs text-slate-400 text-center">
+                    &copy; 2026 Mutolaa — Kitobxonlar uchun zamonaviy raqamli kutubxona va katalog platformasi.
+                </p>
+                <div class="flex gap-4">
+                    <a href="#bosh-sahifa" class="text-xs text-slate-400 hover:text-white transition-colors">Yuqoriga qaytish ↑</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL 1: Kitob haqida batafsil ma'lumot oynasi -->
+    <div id="book-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-navyDeep-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-cream-50 rounded-3xl max-w-2xl w-full overflow-hidden shadow-2xl border border-cream-300 transform transition-all my-8">
+            <div id="modal-content">
+                <!-- Modal ichki qismi JS orqali to'ldiriladi -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Sevimlilar ro'yxati oynasi -->
+    <div id="favorites-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-navyDeep-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-cream-50 rounded-3xl max-w-xl w-full overflow-hidden shadow-2xl border border-cream-300 my-8">
+            <div class="p-6 bg-white border-b border-cream-200 flex justify-between items-center">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center">
+                        <i data-lucide="heart" class="w-5 h-5 fill-rose-600"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-serif text-xl font-bold text-navyDeep-900">Sevimli kitoblarim</h3>
+                        <p class="text-xs text-slate-500">Mutolaa uchun saqlab qo'yilgan asarlar</p>
+                    </div>
+                </div>
+                <button onclick="closeFavoritesModal()" class="p-2 rounded-xl hover:bg-cream-100 text-slate-500 hover:text-navyDeep-900 transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div id="favorites-list" class="p-6 max-h-[60vh] overflow-y-auto space-y-3">
+                <!-- Sevimli kitoblar ro'yxati JS orqali chiqadi -->
+            </div>
+
+            <div class="p-4 bg-cream-100 border-t border-cream-200 flex justify-end">
+                <button onclick="closeFavoritesModal()" class="px-5 py-2.5 rounded-xl bg-navyDeep-900 text-white text-sm font-medium hover:bg-navyDeep-800 transition-colors">
+                    Yopish
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Mantiq -->
+    <script>
+        // Boshlang'ich kitoblar ma'lumotlar bazasi
+        const initialBooks = [
+            {
+                id: 1,
+                title: "O'tkan kunlar",
+                author: "Abdulla Qodiriy",
+                genre: "O'zbek adabiyoti",
+                rating: 5.0,
+                year: 1926,
+                pages: 384,
+                gradient: "from-emerald-800 via-teal-900 to-slate-900",
+                icon: "feather",
+                shortDesc: "O'zbek romanchiligining asoschisi Abdulla Qodiriyning Otabek va Kumushbibi muhabbati hamda tarixiy voqealar haqidagi shoh asari.",
+                fullDesc: "«O'tkan kunlar» — o'zbek adabiyotidagi ilk roman bo'lib, unda XIX asr o'rtalaridagi Turkiston hayoti, xonliklar davridagi ijtimoiy-siyosiy vaziyat va Otabek hamda Kumushbibining pok, fojiali muhabbati yuksak badiiy mahorat bilan tasvirlangan.",
+                quote: "Moziyga qaytib ish ko'rish xayrlidir, deydilar. Shunga ko'ra mavzuni moziydan, yaqin o'tkan kunlardan, tariximizning eng kirlik, qora kunlari bo'lg'an keyingi «xon zamonlari»dan belguladim."
+            },
+            {
+                id: 2,
+                title: "Yulduzli tunlar",
+                author: "Pirimqul Qodirov",
+                genre: "Tarixiy",
+                rating: 4.9,
+                year: 1978,
+                pages: 544,
+                gradient: "from-indigo-900 via-blue-900 to-slate-900",
+                icon: "compass",
+                shortDesc: "Buyuk shoh va shoir Zahiriddin Muhammad Boburning murakkab, ziddiyatli va shonli hayot yo'li haqidagi tarixiy roman.",
+                fullDesc: "Asarda Zahiriddin Muhammad Boburning yoshlik yillaridan boshlab Andijon taxti uchun kurashlari, Samarqandni egallashi, sargardonlik yillari va Hindistonda buyuk saltanat barpo etishigacha bo'lgan voqealar jonli va ta'sirchan tasvirlanadi.",
+                quote: "G'urbatda g'arib shodmon bo'lmas emish, El anga shafiqu mehribon bo'lmas emish..."
+            },
+            {
+                id: 3,
+                title: "Alkimyogar",
+                author: "Paulo Koelo",
+                genre: "Badiiy adabiyot",
+                rating: 4.8,
+                year: 1988,
+                pages: 208,
+                gradient: "from-amber-700 via-orange-800 to-stone-900",
+                icon: "sun",
+                shortDesc: "O'z taqdiri va xazinasini izlab Misr ehromlari sari yo'lga chiqqan cho'pon yigit Santyagoning falsafiy sarguzashtlari.",
+                fullDesc: "«Alkimyogar» — insonning o'z orzulari ortidan borishi, qalb sadosiga quloq tutishi va koinot belgilarini anglashi haqidagi jahonga mashhur falsafiy masal-roman.",
+                quote: "Agar sen biror narsani chin dildan istasang, butun koinot sening istaging amalga oshishiga yordam beradi."
+            },
+            {
+                id: 4,
+                title: "Atom odatlar",
+                author: "Jeyms Klir",
+                genre: "Psixologiya",
+                rating: 4.9,
+                year: 2018,
+                pages: 320,
+                gradient: "from-teal-700 via-emerald-800 to-cyan-950",
+                icon: "zap",
+                shortDesc: "Kichik o'zgarishlar orqali ulkan natijalarga erishish, yaxshi odatlarni shakllantirish va yomonlaridan xalos bo'lish qo'llanmasi.",
+                fullDesc: "Jeyms Klir ushbu kitobda har kuni atigi 1 foizga yaxshilanish yil davomida qanday ulkan o'zgarishlarga olib kelishini ilmiy dalillar va amaliy usullar bilan tushuntirib beradi.",
+                quote: "Siz o'z maqsadlaringiz darajasiga ko'tarilmaysiz, balki tizimlaringiz darajasiga tushasiz."
+            },
+            {
+                id: 5,
+                title: "1984",
+                author: "Jorj Oruell",
+                genre: "Fantastika",
+                rating: 4.8,
+                year: 1949,
+                pages: 328,
+                gradient: "from-slate-800 via-zinc-900 to-neutral-950",
+                icon: "eye",
+                shortDesc: "Totalitar tuzum, doimiy nazorat va erkin fikr uchun kurash haqidagi mashhur antiutopik roman.",
+                fullDesc: "Okeaniya davlatida «Katta Og'a»ning doimiy kuzatuvi ostida yashovchi Uinston Smitning haqiqatni izlash va tizimga qarshi ichki isyoni haqidagi chuqur falsafiy asar.",
+                quote: "Urush — bu tinchlik, erkinlik — bu qullik, bilimsizlik — bu kuchdir."
+            },
+            {
+                id: 6,
+                title: "Kichkina shahzoda",
+                author: "Antuan de Sent-Ekzyuperi",
+                genre: "Badiiy adabiyot",
+                rating: 5.0,
+                year: 1943,
+                pages: 112,
+                gradient: "from-sky-700 via-blue-800 to-indigo-950",
+                icon: "sparkles",
+                shortDesc: "Do'stlik, sevgi, mas'uliyat va kattalar dunyosidagi g'alati odatlar haqida barcha yoshdagilar uchun mo'ljallangan ertak-qissa.",
+                fullDesc: "Sahroi Kabirga qulagan uchuvchi va B-612 asteroididan kelgan Kichkina shahzodaning suhbatlari orqali insoniy qadriyatlar, sadoqat va chinakam muhabbat mohiyati ochib beriladi.",
+                quote: "Eng asosiy narsani ko'z bilan ko'rib bo'lmaydi, faqat qalb bilan his qilish mumkin."
+            },
+            {
+                id: 7,
+                title: "Sapiens: Insoniyatning qisqacha tarixi",
+                author: "Yuval Noy Harari",
+                genre: "Ilmiy-ommabop",
+                rating: 4.7,
+                year: 2011,
+                pages: 464,
+                gradient: "from-rose-800 via-red-900 to-stone-900",
+                icon: "globe",
+                shortDesc: "Homo Sapiens turining paydo bo'lishidan tortib zamonaviy texnologiyalar davrigacha bo'lgan evolyutsiyasi tahlili.",
+                fullDesc: "Tarixchi olim Yuval Noy Harari insoniyat qanday qilib yer yuzidagi hukmron turga aylangani, pullar, dinlar, imperiyalar va ilm-fan taraqqiyoti tarixini qiziqarli tarzda hikoya qiladi.",
+                quote: "Tarixning eng katta kashfiyoti — bu bilimsizlikni tan olish bo'ldi."
+            },
+            {
+                id: 8,
+                title: "Dunyoning ishlari",
+                author: "O'tkir Hoshimov",
+                genre: "O'zbek adabiyoti",
+                rating: 5.0,
+                year: 1982,
+                pages: 272,
+                gradient: "from-emerald-700 via-green-800 to-teal-950",
+                icon: "heart-handshake",
+                shortDesc: "Ona mehri, bolalik xotiralari va oddiy o'zbek insonlarining samimiy hayoti haqidagi ta'sirchan qissa.",
+                fullDesc: "O'tkir Hoshimovning ushbu asari alohida-alohida novellalardan iborat bo'lib, ularning barchasini eng ulug' siymo — Ona obrazi va uning cheksiz mehr-muhabbati birlashtirib turadi.",
+                quote: "Dunyoda hech bir gul ona mehridek iliq hid tarata olmaydi."
+            }
+        ];
+
+        // Janrlar ro'yxati
+        const genres = [
+            "Barchasi",
+            "O'zbek adabiyoti",
+            "Badiiy adabiyot",
+            "Tarixiy",
+            "Psixologiya",
+            "Ilmiy-ommabop",
+            "Fantastika"
+        ];
+
+        // Holat (State)
+        let books = JSON.parse(localStorage.getItem('mutolaa_books')) || initialBooks;
+        let favorites = JSON.parse(localStorage.getItem('mutolaa_favorites')) || [1, 4];
+        let selectedGenre = "Barchasi";
+
+        // Sahifa yuklanganda ishga tushirish
+        document.addEventListener('DOMContentLoaded', () => {
+            renderGenreButtons();
+            filterBooks();
+            updateFavBadge();
+            lucide.createIcons();
+        });
+
+        // Janr tugmalarini chizish
+        function renderGenreButtons() {
+            const container = document.getElementById('genre-buttons');
+            container.innerHTML = genres.map(genre => {
+                const isActive = selectedGenre === genre;
+                return `
+                    <button 
+                        onclick="selectGenre('${genre.replace(/'/g, "\\'")}')" 
+                        class="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${
+                            isActive 
+                            ? 'bg-emeraldDeep-700 text-white shadow-md shadow-emeraldDeep-700/20' 
+                            : 'bg-cream-100 text-navyDeep-800 hover:bg-cream-200 border border-cream-300'
+                        }"
+                    >
+                        ${genre}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        // Janr tanlash
+        function selectGenre(genre) {
+            selectedGenre = genre;
+            renderGenreButtons();
+            filterBooks();
+        }
+
+        // Qidiruv va filtrlash funksiyasi
+        function filterBooks() {
+            const searchInput = document.getElementById('search-input');
+            const clearBtn = document.getElementById('clear-search');
+            const sortSelect = document.getElementById('sort-select');
+            
+            const query = searchInput.value.toLowerCase().trim();
+            const sortBy = sortSelect.value;
+
+            // Tozalash tugmasini ko'rsatish/yashirish
+            if (query.length > 0) {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+            }
+
+            // Filtrlash
+            let filtered = books.filter(book => {
+                const matchesGenre = selectedGenre === "Barchasi" || book.genre === selectedGenre;
+                const matchesQuery = book.title.toLowerCase().includes(query) || 
+                                     book.author.toLowerCase().includes(query) ||
+                                     book.genre.toLowerCase().includes(query);
+                return matchesGenre && matchesQuery;
+            });
+
+            // Saralash
+            if (sortBy === 'rating') {
+                filtered.sort((a, b) => b.rating - a.rating);
+            } else if (sortBy === 'year-desc') {
+                filtered.sort((a, b) => b.year - a.year);
+            } else if (sortBy === 'title') {
+                filtered.sort((a, b) => a.title.localeCompare(b.title));
+            }
+
+            renderBooks(filtered);
+        }
+
+        // Qidiruvni tozalash
+        function clearSearch() {
+            document.getElementById('search-input').value = '';
+            filterBooks();
+        }
+
+        // Barcha filtrlarni tiklash
+        function resetFilters() {
+            selectedGenre = "Barchasi";
+            document.getElementById('search-input').value = '';
+            document.getElementById('sort-select').value = 'default';
+            renderGenreButtons();
+            filterBooks();
+        }
+
+        // Yulduzchalarni chizish
+        function renderStars(rating) {
+            const fullStars = Math.floor(rating);
+            let starsHtml = '';
+            for (let i = 0; i < 5; i++) {
+                if (i < fullStars) {
+                    starsHtml += `<i data-lucide="star" class="w-3.5 h-3.5 text-amber-500 fill-amber-500"></i>`;
+                } else {
+                    starsHtml += `<i data-lucide="star" class="w-3.5 h-3.5 text-slate-300"></i>`;
+                }
+            }
+            return starsHtml;
+        }
+
+        // Kitoblar kartochkalarini ekranga chiqarish
+        function renderBooks(bookList) {
+            const grid = document.getElementById('books-grid');
+            const emptyState = document.getElementById('empty-state');
+            const countBadge = document.getElementById('books-count');
+
+            countBadge.textContent = `Topildi: ${bookList.length} ta kitob`;
+
+            if (bookList.length === 0) {
+                grid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                lucide.createIcons();
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+
+            grid.innerHTML = bookList.map(book => {
+                const isFav = favorites.includes(book.id);
+                return `
+                    <article class="group bg-white rounded-2xl border border-cream-200 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col">
+                        <!-- Kitob Muqovasi Dizayni -->
+                        <div class="relative h-52 bg-gradient-to-br ${book.gradient} p-6 flex flex-col justify-between text-white overflow-hidden">
+                            <!-- Orqa fondagi bezak doira -->
+                            <div class="absolute -right-6 -bottom-6 w-32 h-32 rounded-full bg-white/10 blur-xl group-hover:scale-125 transition-transform duration-500"></div>
+                            
+                            <div class="flex justify-between items-start relative z-10">
+                                <span class="px-2.5 py-1 rounded-lg bg-white/15 backdrop-blur-md text-[11px] font-medium tracking-wide">
+                                    ${book.genre}
+                                </span>
+                                <button 
+                                    onclick="toggleFavorite(${book.id})" 
+                                    aria-label="Sevimlilarga qo'shish"
+                                    class="w-9 h-9 rounded-xl bg-white/15 hover:bg-white/25 backdrop-blur-md flex items-center justify-center transition-transform active:scale-90"
+                                >
+                                    <i data-lucide="heart" class="w-4 h-4 ${isFav ? 'text-rose-400 fill-rose-400' : 'text-white'}"></i>
+                                </button>
+                            </div>
+
+                            <div class="relative z-10 my-auto flex flex-col items-center text-center">
+                                <div class="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center mb-2 shadow-inner">
+                                    <i data-lucide="${book.icon || 'book'}" class="w-5 h-5 text-cream-100"></i>
+                                </div>
+                                <h3 class="font-serif font-bold text-lg leading-snug line-clamp-1">${book.title}</h3>
+                                <p class="text-xs text-white/80 mt-0.5">${book.author}</p>
+                            </div>
+                        </div>
+
+                        <!-- Kartochka tanasi -->
+                        <div class="p-5 flex-grow flex flex-col justify-between space-y-4">
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-1">
+                                        ${renderStars(book.rating)}
+                                        <span class="text-xs font-bold text-navyDeep-900 ml-1">${book.rating.toFixed(1)}</span>
+                                    </div>
+                                    <span class="text-xs text-slate-400">${book.year}-yil</span>
+                                </div>
+                                <h4 class="font-serif font-bold text-lg text-navyDeep-900 group-hover:text-emeraldDeep-700 transition-colors line-clamp-1">
+                                    ${book.title}
+                                </h4>
+                                <p class="text-xs font-medium text-emeraldDeep-700 mb-2">${book.author}</p>
+                                <p class="text-xs text-slate-600 leading-relaxed line-clamp-3">
+                                    ${book.shortDesc}
+                                </p>
+                            </div>
+
+                            <div class="pt-3 border-t border-cream-200 flex items-center gap-2">
+                                <button 
+                                    onclick="openBookModal(${book.id})" 
+                                    class="flex-grow py-2.5 px-4 rounded-xl bg-cream-100 hover:bg-emeraldDeep-700 text-navyDeep-900 hover:text-white font-medium text-xs transition-colors flex items-center justify-center gap-1.5"
+                                >
+                                    <span>Batafsil o'qish</span>
+                                    <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        // Batafsil ma'lumot modalini ochish
+        function openBookModal(bookId) {
+            const book = books.find(b => b.id === bookId);
+            if (!book) return;
+
+            const isFav = favorites.includes(book.id);
+            const modal = document.getElementById('book-modal');
+            const content = document.getElementById('modal-content');
+
+            content.innerHTML = `
+                <!-- Modal Yuqori qismi (Muqova) -->
+                <div class="relative bg-gradient-to-br ${book.gradient} p-6 sm:p-8 text-white">
+                    <button onclick="closeBookModal()" class="absolute top-4 right-4 w-9 h-9 rounded-xl bg-white/15 hover:bg-white/25 flex items-center justify-center text-white transition-colors">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                    
+                    <div class="flex flex-col sm:flex-row gap-5 items-start sm:items-center">
+                        <div class="w-16 h-16 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center shrink-0">
+                            <i data-lucide="${book.icon || 'book-open'}" class="w-8 h-8 text-cream-50"></i>
+                        </div>
+                        <div>
+                            <span class="inline-block px-3 py-1 rounded-full bg-white/15 text-xs font-medium mb-2">${book.genre}</span>
+                            <h2 class="font-serif text-2xl sm:text-3xl font-bold leading-tight">${book.title}</h2>
+                            <p class="text-sm text-white/85 mt-1 font-medium">${book.author}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Asosiy ma'lumotlar -->
+                <div class="p-6 sm:p-8 space-y-6">
+                    <!-- Texnik ko'rsatkichlar -->
+                    <div class="grid grid-cols-3 gap-3 bg-white p-4 rounded-2xl border border-cream-200 text-center">
+                        <div>
+                            <span class="block text-[11px] text-slate-400 uppercase tracking-wider">Reyting</span>
+                            <span class="font-bold text-navyDeep-900 text-sm flex items-center justify-center gap-1 mt-0.5">
+                                <i data-lucide="star" class="w-4 h-4 text-amber-500 fill-amber-500"></i> ${book.rating.toFixed(1)}
+                            </span>
+                        </div>
+                        <div class="border-x border-cream-200">
+                            <span class="block text-[11px] text-slate-400 uppercase tracking-wider">Sahifalar</span>
+                            <span class="font-bold text-navyDeep-900 text-sm block mt-0.5">${book.pages} bet</span>
+                        </div>
+                        <div>
+                            <span class="block text-[11px] text-slate-400 uppercase tracking-wider">Nashr yili</span>
+                            <span class="font-bold text-navyDeep-900 text-sm block mt-0.5">${book.year}-yil</span>
+                        </div>
+                    </div>
+
+                    <!-- To'liq tavsif -->
+                    <div>
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Asar haqida</h4>
+                        <p class="text-sm text-navyDeep-800 leading-relaxed">
+                            ${book.fullDesc}
+                        </p>
+                    </div>
+
+                    <!-- Iqtibos -->
+                    ${book.quote ? `
+                        <div class="bg-cream-100 p-5 rounded-2xl border-l-4 border-emeraldDeep-700 relative">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="text-xs font-semibold text-emeraldDeep-800 flex items-center gap-1.5">
+                                    <i data-lucide="quote" class="w-3.5 h-3.5"></i> Asardan iqtibos
+                                </span>
+                                <button onclick="copyQuote('${book.quote.replace(/'/g, "\\'")}')" class="text-xs text-slate-500 hover:text-emeraldDeep-700 flex items-center gap-1 transition-colors">
+                                    <i data-lucide="copy" class="w-3.5 h-3.5"></i> Nusxalash
+                                </button>
+                            </div>
+                            <p class="font-serif italic text-sm sm:text-base text-navyDeep-900 leading-relaxed">
+                                "${book.quote}"
+                            </p>
+                        </div>
+                    ` : ''}
+
+                    <!-- Pastki tugmalar -->
+                    <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                        <button 
+                            onclick="toggleFavorite(${book.id}, true)" 
+                            class="flex-1 py-3 px-5 rounded-xl font-medium text-sm transition-all flex items-center justify-center gap-2 ${
+                                isFav 
+                                ? 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100' 
+                                : 'bg-emeraldDeep-700 text-white hover:bg-emeraldDeep-800 shadow-md'
+                            }"
+                        >
+                            <i data-lucide="heart" class="w-4 h-4 ${isFav ? 'fill-rose-600 text-rose-600' : ''}"></i>
+                            <span>${isFav ? 'Sevimlilardan olib tashlash' : 'Sevimlilarga qo\'shish'}</span>
+                        </button>
+                        <button onclick="closeBookModal()" class="py-3 px-6 rounded-xl bg-white border border-cream-300 text-navyDeep-900 font-medium text-sm hover:bg-cream-100 transition-colors">
+                            Yopish
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            lucide.createIcons();
+        }
+
+        function closeBookModal() {
+            document.getElementById('book-modal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        // Sevimlilarga qo'shish / o'chirish
+        function toggleFavorite(bookId, refreshModal = false) {
+            const book = books.find(b => b.id === bookId);
+            const index = favorites.indexOf(bookId);
+
+            if (index === -1) {
+                favorites.push(bookId);
+                showToast(`"${book.title}" sevimlilarga qo'shildi`, 'success');
+            } else {
+                favorites.splice(index, 1);
+                showToast(`"${book.title}" sevimlilardan o'chirildi`, 'info');
+            }
+
+            localStorage.setItem('mutolaa_favorites', JSON.stringify(favorites));
+            updateFavBadge();
+            filterBooks();
+
+            if (refreshModal) {
+                openBookModal(bookId);
+            }
+            if (!document.getElementById('favorites-modal').classList.contains('hidden')) {
+                renderFavoritesList();
+            }
+        }
+
+        // Sevimlilar soni belgisini yangilash
+        function updateFavBadge() {
+            document.getElementById('fav-badge').textContent = favorites.length;
+        }
+
+        // Sevimlilar modalini ochish
+        function openFavoritesModal() {
+            renderFavoritesList();
+            document.getElementById('favorites-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeFavoritesModal() {
+            document.getElementById('favorites-modal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        // Sevimlilar ro'yxatini chizish
+        function renderFavoritesList() {
+            const listContainer = document.getElementById('favorites-list');
+            const favBooks = books.filter(b => favorites.includes(b.id));
+
+            if (favBooks.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="text-center py-10">
+                        <div class="w-12 h-12 rounded-2xl bg-cream-200 text-slate-400 flex items-center justify-center mx-auto mb-3">
+                            <i data-lucide="heart-off" class="w-6 h-6"></i>
+                        </div>
+                        <p class="font-medium text-navyDeep-900 text-sm">Sevimlilar ro'yxati bo'sh</p>
+                        <p class="text-xs text-slate-500 mt-1">Katalogdagi kitoblarning yurakcha belgisini bosib saqlang.</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            listContainer.innerHTML = favBooks.map(book => `
+                <div class="flex items-center justify-between gap-3 p-3.5 bg-white rounded-2xl border border-cream-200 shadow-sm">
+                    <div class="flex items-center gap-3 min-w-0 cursor-pointer" onclick="closeFavoritesModal(); openBookModal(${book.id})">
+                        <div class="w-11 h-11 rounded-xl bg-gradient-to-br ${book.gradient} text-white flex items-center justify-center shrink-0">
+                            <i data-lucide="${book.icon || 'book'}" class="w-5 h-5"></i>
+                        </div>
+                        <div class="truncate">
+                            <h4 class="font-serif font-bold text-sm text-navyDeep-900 truncate hover:text-emeraldDeep-700">${book.title}</h4>
+                            <p class="text-xs text-slate-500 truncate">${book.author} • ${book.genre}</p>
+                        </div>
+                    </div>
+                    <button 
+                        onclick="toggleFavorite(${book.id})" 
+                        title="Ro'yxatdan o'chirish"
+                        class="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors shrink-0"
+                    >
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `).join('');
+
+            lucide.createIcons();
+        }
+
+        // Yangi kitob qo'shish formasi
+        function handleAddBook(event) {
+            event.preventDefault();
+
+            const gradients = [
+                "from-emerald-800 via-teal-900 to-slate-900",
+                "from-indigo-900 via-blue-900 to-slate-900",
+                "from-amber-700 via-orange-800 to-stone-900",
+                "from-rose-800 via-red-900 to-stone-900",
+                "from-cyan-800 via-sky-900 to-slate-900"
+            ];
+            const icons = ["book-open", "feather", "bookmark", "award", "sparkles"];
+
+            const title = document.getElementById('new-title').value.trim();
+            const author = document.getElementById('new-author').value.trim();
+            const genre = document.getElementById('new-genre').value;
+            const year = parseInt(document.getElementById('new-year').value);
+            const pages = parseInt(document.getElementById('new-pages').value);
+            const desc = document.getElementById('new-desc').value.trim();
+            const quote = document.getElementById('new-quote').value.trim();
+
+            const newBook = {
+                id: Date.now(),
+                title,
+                author,
+                genre,
+                rating: 5.0,
+                year,
+                pages,
+                gradient: gradients[Math.floor(Math.random() * gradients.length)],
+                icon: icons[Math.floor(Math.random() * icons.length)],
+                shortDesc: desc,
+                fullDesc: desc,
+                quote: quote || null
+            };
+
+            books.unshift(newBook);
+            localStorage.setItem('mutolaa_books', JSON.stringify(books));
+
+            // Formani tozalash
+            document.getElementById('add-book-form').reset();
+            
+            // Filtrni yangilash va katalogga o'tish
+            selectedGenre = "Barchasi";
+            renderGenreButtons();
+            filterBooks();
+
+            showToast(`"${title}" kitobi katalogga muvaffaqiyatli qo'shildi!`, 'success');
+            document.getElementById('katalog').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Iqtibosni nusxalash (iFrame xavfsiz usulda)
+        function copyQuote(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = `"${text}"`;
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast("Iqtibos buferga nusxalandi!", 'success');
+            } catch (err) {
+                showToast("Nusxalashda xatolik yuz berdi", 'info');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        // Mobil menyuni ochish/yopish
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Bildirishnoma (Toast) ko'rsatish
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const bgClass = type === 'success' ? 'bg-emeraldDeep-800 text-white' : 'bg-navyDeep-900 text-white';
+            const iconName = type === 'success' ? 'check-circle-2' : 'info';
+
+            toast.className = `${bgClass} px-4 py-3 rounded-xl shadow-lg flex items-center gap-2.5 text-xs sm:text-sm font-medium transform transition-all duration-300 translate-y-2 opacity-0 pointer-events-auto border border-white/10`;
+            toast.innerHTML = `
+                <i data-lucide="${iconName}" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+                <span>${message}</span>
+            `;
+
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Modal tashqarisiga bosilganda yopish
+        window.addEventListener('click', (e) => {
+            const bookModal = document.getElementById('book-modal');
+            const favModal = document.getElementById('favorites-modal');
+            if (e.target === bookModal) closeBookModal();
+            if (e.target === favModal) closeFavoritesModal();
+        });
+    </script>
+</body>
+</html>
